@@ -91,6 +91,31 @@ const abi = [
       },
       {
         indexed: true,
+        internalType: "address",
+        name: "submitter",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "bytes32",
+        name: "commitment",
+        type: "bytes32",
+      },
+    ],
+    name: "CommitmentSubmitted",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "bountyId",
+        type: "uint256",
+      },
+      {
+        indexed: true,
         internalType: "uint256",
         name: "winnerIndex",
         type: "uint256",
@@ -191,6 +216,30 @@ const abi = [
         internalType: "uint256",
         name: "winnerIndex",
         type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "commitments",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
       },
     ],
     stateMutability: "view",
@@ -379,8 +428,31 @@ const abi = [
         name: "answer",
         type: "string",
       },
+      {
+        internalType: "bytes32",
+        name: "salt",
+        type: "bytes32",
+      },
     ],
-    name: "submitAnswer",
+    name: "revealAnswer",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "bountyId",
+        type: "uint256",
+      },
+      {
+        internalType: "bytes32",
+        name: "commitment",
+        type: "bytes32",
+      },
+    ],
+    name: "submitCommitment",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

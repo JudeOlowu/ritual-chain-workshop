@@ -78,3 +78,14 @@ export const STATUS_META: Record<
 export function canSubmit(b: Bounty, nowSeconds = Date.now() / 1000): boolean {
   return !b.judged && !b.finalized && Number(b.deadline) > nowSeconds;
 }
+
+/** Can a participant submit a commitment? */
+export function canCommit(b: Bounty, nowSeconds = Date.now() / 1000): boolean {
+  return !b.judged && !b.finalized && Number(b.deadline) > nowSeconds;
+}
+
+/** Can a participant reveal their answer? */
+export function canReveal(b: Bounty, nowSeconds = Date.now() / 1000): boolean {
+  return !b.judged && !b.finalized && Number(b.deadline) <= nowSeconds;
+}
+
