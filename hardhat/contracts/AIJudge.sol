@@ -49,6 +49,7 @@ contract AIJudge is PrecompileConsumer {
     }
 
     mapping(uint256 => Bounty) public bounties;
+    mapping(uint256 => mapping(address => bytes32)) public commitments;
 
     event BountyCreated(
         uint256 indexed bountyId,
@@ -56,6 +57,12 @@ contract AIJudge is PrecompileConsumer {
         string title,
         uint256 reward,
         uint256 deadline
+    );
+
+    event CommitmentSubmitted(
+        uint256 indexed bountyId,
+        address indexed submitter,
+        bytes32 commitment
     );
 
     event AnswerSubmitted(
@@ -104,13 +111,30 @@ contract AIJudge is PrecompileConsumer {
         emit BountyCreated(bountyId, msg.sender, title, msg.value, deadline);
     }
 
-    function submitAnswer(
+    function submitCommitment(
         uint256 bountyId,
-        string calldata answer
+        bytes32 commitment
     ) external bountyExists(bountyId) {
         Bounty storage bounty = bounties[bountyId];
 
-        // require(block.timestamp < bounty.deadline, "submissions closed");
+        require(block.timestamp <= bounty.deadline, "commitments closed");
+        require(!bounty.judged, "already judged");
+        require(!bounty.finalized, "already finalized");
+        require(commitments[bountyId][msg.sender] == bytes32(0), "already committed");
+
+        commitments[bountyId][msg.sender] = commitment;
+
+        emit CommitmentSubmitted(bountyId, msg.sender, commitment);
+    }
+
+    function revealAnswer(
+        uint256 bountyId,
+        string calldata answer,
+        bytes32 salt
+    ) external bountyExists(bountyId) {
+        Bounty storage bounty = bounties[bountyId];
+
+        require(block.timestamp > bounty.deadline, "reveal phase not started");
         require(!bounty.judged, "already judged");
         require(!bounty.finalized, "already finalized");
         require(
@@ -118,6 +142,13 @@ contract AIJudge is PrecompileConsumer {
             "too many submissions"
         );
         require(bytes(answer).length <= MAX_ANSWER_LENGTH, "answer too long");
+        require(commitments[bountyId][msg.sender] != bytes32(0), "no commitment found");
+
+        bytes32 expectedHash = keccak256(abi.encodePacked(answer, salt, msg.sender, bountyId));
+        require(commitments[bountyId][msg.sender] == expectedHash, "invalid reveal");
+
+        // Clear commitment to prevent multiple reveals
+        commitments[bountyId][msg.sender] = bytes32(0);
 
         bounty.submissions.push(
             Submission({submitter: msg.sender, answer: answer})
